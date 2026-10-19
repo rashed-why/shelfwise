@@ -9,6 +9,10 @@ import {
   authSubmitClass,
 } from "@/lib/auth-form-styles";
 import {
+  AdminTable,
+  adminTableCellClass,
+} from "@/components/admin/admin-table";
+import {
   getAllAuthorOptions,
   getAllCategoryOptions,
   loadAdminBooks,
@@ -206,23 +210,29 @@ export function AdminBookForm() {
         </button>
       </form>
 
-      <section>
+      <section className="space-y-3">
         <h3 className="text-sm font-semibold text-navy">Added in this browser</h3>
-        {items.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">No books added yet.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-white">
-            {items.map((item) => (
-              <li key={item.id} className="px-4 py-3 text-sm">
-                <p className="font-medium text-navy">{item.title}</p>
-                <p className="text-muted">{item.author}</p>
-                <p className="mt-1 text-xs text-muted">
-                  {item.categorySlug} · <code>{item.slug}</code>
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <AdminTable
+          caption="Books added in this browser"
+          columns={["Title", "Author", "Category", "Slug"]}
+          isEmpty={items.length === 0}
+          emptyMessage="No books added yet."
+        >
+          {items.map((item) => (
+            <tr key={item.id}>
+              <td className={`${adminTableCellClass} font-medium`}>
+                {item.title}
+              </td>
+              <td className={adminTableCellClass}>{item.author}</td>
+              <td className={`${adminTableCellClass} text-muted`}>
+                {item.categorySlug}
+              </td>
+              <td className={adminTableCellClass}>
+                <code className="text-xs text-muted">{item.slug}</code>
+              </td>
+            </tr>
+          ))}
+        </AdminTable>
       </section>
     </div>
   );

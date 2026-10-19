@@ -21,4 +21,18 @@ export const adminNavItems: DashboardNavItem[] = [
     label: "Books",
     description: "Add titles to the catalog.",
   },
+  {
+    href: "/admin/users",
+    label: "Users",
+    description: "Manage member accounts and roles.",
+  },
+  {
+    href: "/admin/borrowed/list",
+    label: "Borrowed",
+    description: "Track active loans and returns.",
+    children: [
+      { href: "/admin/borrowed/create", label: "Create" },
+      { href: "/admin/borrowed/list", label: "List" },
+    ],
+  },
 ];

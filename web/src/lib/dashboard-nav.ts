@@ -1,7 +1,13 @@
+export type DashboardNavChildItem = {
+  href: string;
+  label: string;
+};
+
 export type DashboardNavItem = {
   href: string;
   label: string;
   description: string;
+  children?: DashboardNavChildItem[];
 };
 
 export const dashboardNavItems: DashboardNavItem[] = [

@@ -11,24 +11,24 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
-import { Role } from '../generated/prisma/client';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
+import { Role } from "../generated/prisma/client";
+import { Roles } from "../auth/decorators/roles.decorator";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../auth/guards/roles.guard";
+import { UserService } from "./user.service";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateRoleDto } from "./dto/update-role.dto";
 
-@Controller('user')
+@Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
   @UseInterceptors(
-    FileInterceptor('image', {
+    FileInterceptor("image", {
       storage: memoryStorage(),
     }),
   )
@@ -56,14 +56,14 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Patch(':id/role')
-  updateRole(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+  @Patch(":id/role")
+  updateRole(@Param("id") id: string, @Body() updateRoleDto: UpdateRoleDto) {
     return this.userService.updateRole(id, updateRoleDto.role);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get(":id")
+  findOne(@Param("id") id: string) {
     return this.userService.findOne(id);
   }
 }
