@@ -1,0 +1,84 @@
+@baseUrl = http://localhost:4000
+@accessToken = {{login.response.body.accessToken}}
+@refreshToken = {{login.response.body.refreshToken}}
+@userId = {{login.response.body.user.id}}
+
+### Health
+GET {{baseUrl}}/
+
+### Register
+# image is required: jpeg, png, or webp, max 500KB
+POST {{baseUrl}}/user
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="name"
+
+Jane Doe
+------FormBoundary
+Content-Disposition: form-data; name="email"
+
+jane@example.com
+------FormBoundary
+Content-Disposition: form-data; name="password"
+
+password123
+------FormBoundary
+Content-Disposition: form-data; name="image"; filename="avatar.png"
+Content-Type: image/png
+
+< ./avatar.png
+------FormBoundary--
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "jane@example.com",
+  "password": "password123"
+}
+
+### Refresh
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Current user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Google sign-in
+# Open in a browser. Redirects to Google, then to FRONTEND_URL/auth/google/callback
+GET {{baseUrl}}/auth/google
+
+### List users (admin)
+GET {{baseUrl}}/user
+Authorization: Bearer {{accessToken}}
+
+### Get user
+GET {{baseUrl}}/user/{{userId}}
+Authorization: Bearer {{accessToken}}
+
+### Update role (admin)
+# role: USER or ADMIN
+PATCH {{baseUrl}}/user/{{userId}}/role
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "role": "ADMIN"
+}

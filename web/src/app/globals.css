@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* Selfwise brand palette */
+:root {
+  --brand-teal: #20a181;
+  --brand-navy: #123669;
+  --brand-blue: #166ad8;
+
+  --background: #ffffff;
+  --foreground: #171717;
+  --muted: #525252;
+  --border: #1236691f;
+  --ring: #166ad8;
+}
+
+@theme inline {
+  --color-brand-teal: #20a181;
+  --color-brand-navy: #123669;
+  --color-brand-blue: #166ad8;
+
+  --color-primary: #20a181;
+  --color-secondary: #166ad8;
+  --color-navy: #123669;
+
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-quicksand), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    background-color: #ffffff;
+  }
+
+  body {
+    @apply bg-white text-foreground font-sans antialiased;
+    background-color: #ffffff;
+    color: #171717;
+  }
+
+  a {
+    @apply text-secondary underline-offset-4 hover:text-brand-teal hover:underline;
+  }
+
+  ::selection {
+    @apply bg-brand-teal/25 text-navy;
+  }
+}
