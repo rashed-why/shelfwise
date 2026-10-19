@@ -6,30 +6,33 @@ export type DashboardNavItem = {
 
 export const dashboardNavItems: DashboardNavItem[] = [
   {
-    href: "/dashboard",
+    href: "/user/dashboard",
     label: "Overview",
     description: "Your reading activity at a glance.",
   },
   {
-    href: "/dashboard/holds",
+    href: "/user/holds",
     label: "My holds",
     description: "Books you have placed on hold.",
   },
   {
-    href: "/dashboard/reading-list",
+    href: "/user/reading-list",
     label: "Reading list",
     description: "Saved titles you want to read next.",
   },
   {
-    href: "/dashboard/account",
+    href: "/user/account",
     label: "Account",
     description: "Profile and library preferences.",
   },
 ];
 
-export function isDashboardNavActive(pathname: string, href: string) {
-  if (href === "/dashboard") {
-    return pathname === "/dashboard";
+export function isSidebarNavActive(pathname: string, href: string) {
+  if (href === "/user/dashboard" || href === "/admin") {
+    return pathname === href;
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
+
+/** @deprecated Use isSidebarNavActive */
+export const isDashboardNavActive = isSidebarNavActive;

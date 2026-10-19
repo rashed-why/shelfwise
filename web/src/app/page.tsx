@@ -1,6 +1,6 @@
-import { BookShowcaseSection } from "@/components/book-showcase-section";
-import { BrowseGenresSection } from "@/components/browse-genres-section";
-import { HeroBanner } from "@/components/hero-banner";
+import { BookShowcaseSection } from "@/components/home/book-showcase-section";
+import { BrowseGenresSection } from "@/components/home/browse-genres-section";
+import { HeroBanner } from "@/components/home/hero-banner";
 import { getFeaturedCategoryShowcases } from "@/lib/category-books";
 import { mostViewedBooks, mostViewedViewAllHref } from "@/lib/books";
 

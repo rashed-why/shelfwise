@@ -1,4 +1,5 @@
 import { mostViewedBooks, type BookListing } from "@/lib/books";
+import { bookSlugFromHref } from "@/lib/book-paths";
 import { categories } from "@/lib/categories";
 import { getBooksForCategory } from "@/lib/category-books";
 
@@ -16,7 +17,7 @@ const extraSummaries: Record<string, string> = {
 };
 
 function slugFromHref(href: string) {
-  return href.replace(/^\/books\//, "");
+  return bookSlugFromHref(href);
 }
 
 function buildCatalog(): Map<string, BookDetail> {
