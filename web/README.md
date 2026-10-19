@@ -34,3 +34,15 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## Main user flow
+
+See **[Main user flow (Web ↔ API)](../README.md#main-user-flow-web--api)** in the root README (browse → auth → holds → admin borrow → reading list, with curl examples).
+
+---
+
+## Planned AI/ML features (not implemented)
+
+AI/ML features couldn’t be implemented due to time constraints. The original plan was to integrate a RAG-based chatbot using an LLM and LangChain to recommend books based on users’ questions and provide text summarization.

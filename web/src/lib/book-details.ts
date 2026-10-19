@@ -39,7 +39,7 @@ function buildCatalog(): Map<string, BookDetail> {
       coverUrl: book.coverUrl,
       summary:
         extraSummaries[slug] ??
-        `${book.title} by ${book.author} — available to borrow on Selfwise.`,
+        `${book.title} by ${book.author} — available to borrow on Shelfwise.`,
     });
   }
 

@@ -3,7 +3,7 @@ import { DashboardSidebar } from "@/components/user/dashboard-sidebar";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Your Selfwise library dashboard.",
+  description: "Your Shelfwise library dashboard.",
 };
 
 export default function UserLayout({ children }: LayoutProps<"/user">) {

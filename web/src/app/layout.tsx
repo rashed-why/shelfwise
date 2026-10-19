@@ -15,9 +15,9 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Selfwise",
+  title: "Shelfwise",
   description:
-    "Selfwise helps you understand yourself and grow with intention.",
+    "Shelfwise — browse the catalog, place holds, and manage your reading list.",
   icons: {
     icon: [{ url: "/fav.png", type: "image/png" }],
     apple: "/fav.png",

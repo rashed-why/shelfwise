@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { Suspense, useEffect, useId, useState } from "react";
 import {
   dashboardNavItems,
   isSidebarNavActive,
@@ -126,7 +126,27 @@ function SidebarNavDropdown({
   );
 }
 
-export function DashboardSidebar({
+function DashboardSidebarFallback({ heading = "Dashboard" }: DashboardSidebarProps) {
+  return (
+    <aside
+      aria-busy="true"
+      aria-label={`Loading ${heading}`}
+      className="w-full min-w-0 shrink-0 self-start lg:sticky lg:top-[calc(var(--site-header-height)+1rem)] lg:w-[240px] lg:min-w-[240px] lg:max-w-[240px] lg:max-h-[calc(100dvh-var(--site-header-height)-2rem)] lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable]"
+    >
+      <div className="h-3 w-20 animate-pulse rounded bg-brand-navy/10" />
+      <div className="mt-3 flex flex-col gap-1">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div
+            key={index}
+            className="h-10 w-full animate-pulse rounded-lg bg-brand-navy/5"
+          />
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function DashboardSidebarInner({
   items = dashboardNavItems,
   heading = "Dashboard",
 }: DashboardSidebarProps) {
@@ -169,5 +189,13 @@ export function DashboardSidebar({
         </div>
       </nav>
     </aside>
+  );
+}
+
+export function DashboardSidebar(props: DashboardSidebarProps) {
+  return (
+    <Suspense fallback={<DashboardSidebarFallback heading={props.heading} />}>
+      <DashboardSidebarInner {...props} />
+    </Suspense>
   );
 }

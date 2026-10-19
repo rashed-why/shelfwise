@@ -4,7 +4,7 @@ import { RegisterForm } from "@/components/register/register-form";
 
 export const metadata: Metadata = {
   title: "Create account",
-  description: "Create your Selfwise library account.",
+  description: "Create your Shelfwise library account.",
 };
 
 export default function RegisterPage() {
@@ -15,7 +15,7 @@ export default function RegisterPage() {
           Create account
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Join Selfwise to save lists, place holds, and track your reading. A
+          Join Shelfwise to save lists, place holds, and track your reading. A
           profile photo is required to create your account.
         </p>
 

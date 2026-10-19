@@ -1,4 +1,4 @@
-/** Selfwise brand colors — keep in sync with globals.css */
+/** Shelfwise brand colors — keep in sync with globals.css */
 export const colors = {
   teal: "#20A181",
   navy: "#123669",

@@ -1,4 +1,4 @@
-const BORROWED_KEY = "selfwise_admin_borrowed";
+const BORROWED_KEY = "shelfwise_admin_borrowed";
 
 export type BorrowedStatus = "active" | "returned" | "overdue";
 

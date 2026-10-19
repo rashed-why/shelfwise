@@ -15,7 +15,7 @@ export function SiteHeader() {
           <Link href="/" className="flex shrink-0 items-center">
             <Image
               src={logo.src}
-              alt="Selfwise"
+              alt="Shelfwise"
               width={logo.width}
               height={logo.height}
               priority

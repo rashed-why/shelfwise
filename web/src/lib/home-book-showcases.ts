@@ -27,7 +27,7 @@ export function bookRecordToDetail(book: BookRecord): BookDetail {
     coverUrl: getApiAssetUrl(book.image),
     summary:
       summary ||
-      `${book.title} by ${book.author.name} — available to borrow on Selfwise.`,
+      `${book.title} by ${book.author.name} — available to borrow on Shelfwise.`,
   };
 }
 

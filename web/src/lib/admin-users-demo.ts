@@ -6,7 +6,7 @@ export type AdminUserRow = {
   joinedAt: string;
 };
 
-const STORED_USERS_KEY = "selfwise_admin_users";
+const STORED_USERS_KEY = "shelfwise_admin_users";
 
 /** Demo rows for the admin users table until the web app wires auth + GET /user. */
 export const adminDemoUsers: AdminUserRow[] = [
@@ -27,7 +27,7 @@ export const adminDemoUsers: AdminUserRow[] = [
   {
     id: "demo-3",
     name: "Sam Admin",
-    email: "admin@selfwise.local",
+    email: "admin@shelfwise.local",
     role: "ADMIN",
     joinedAt: "2025-11-01T09:00:00.000Z",
   },

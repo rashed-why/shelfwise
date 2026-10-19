@@ -18,7 +18,7 @@ export default function DiscoverPage() {
         <div>
           <h1 className="text-3xl font-bold text-navy">Discover</h1>
           <p className="mt-2 max-w-2xl text-muted">
-            Choose a category to browse books on Selfwise.
+            Choose a category to browse books on Shelfwise.
           </p>
         </div>
 

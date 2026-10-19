@@ -18,7 +18,7 @@ const accountLinks = [
 ];
 
 const aboutLinks = [
-  { href: "/about", label: "About Selfwise" },
+  { href: "/about", label: "About Shelfwise" },
   { href: "/contact", label: "Contact" },
   { href: "/help", label: "Help center" },
 ];
@@ -65,7 +65,7 @@ export function SiteFooter() {
             <Link href="/" className="inline-flex items-center">
               <Image
                 src={logo.src}
-                alt="Selfwise"
+                alt="Shelfwise"
                 width={logo.width}
                 height={logo.height}
                 unoptimized
@@ -73,8 +73,7 @@ export function SiteFooter() {
               />
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted">
-              Know yourself. Grow with intention. Your friendly library for
-              discovery, reading, and personal growth.
+              Your friendly library for discovery, holds, and reading lists.
             </p>
           </div>
 
@@ -82,7 +81,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-sm text-muted sm:text-left">
-          © 2026 Selfwise. All rights reserved.
+          © 2026 Shelfwise. All rights reserved.
         </div>
       </div>
     </footer>

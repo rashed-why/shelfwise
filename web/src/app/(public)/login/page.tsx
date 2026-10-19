@@ -5,7 +5,7 @@ import { SignInForm } from "@/components/login/sign-in-form";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to your Selfwise account.",
+  description: "Sign in to your Shelfwise account.",
 };
 
 export default function LoginPage() {

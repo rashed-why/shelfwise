@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { BookDetailContent } from "@/components/books/book-detail-content";
 import { RELATED_BOOKS_MAX } from "@/lib/book-details";
@@ -11,7 +10,7 @@ import {
 } from "@/lib/home-book-showcases";
 import { useBookQuery, useBooksQuery } from "@/lib/queries/books";
 
-function DiscoverBookDetailSkeleton() {
+export function DiscoverBookDetailSkeleton() {
   return (
     <div aria-busy="true" aria-label="Loading book">
       <div className="h-4 w-36 animate-pulse rounded bg-brand-navy/10" />
@@ -27,10 +26,15 @@ function DiscoverBookDetailSkeleton() {
   );
 }
 
-export function DiscoverBookDetail() {
-  const params = useParams<{ category: string; bookSlug: string }>();
-  const categorySlug = params.category ?? "";
-  const bookId = params.bookSlug ?? "";
+type DiscoverBookDetailProps = {
+  categorySlug: string;
+  bookId: string;
+};
+
+export function DiscoverBookDetail({
+  categorySlug,
+  bookId,
+}: DiscoverBookDetailProps) {
 
   const {
     data: bookRecord,

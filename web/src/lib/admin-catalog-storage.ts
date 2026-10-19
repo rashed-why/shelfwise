@@ -1,9 +1,9 @@
 import { categories, type Category } from "@/lib/categories";
 import { slugify } from "@/lib/slugify";
 
-const CATEGORIES_KEY = "selfwise_admin_categories";
-const AUTHORS_KEY = "selfwise_admin_authors";
-const BOOKS_KEY = "selfwise_admin_books";
+const CATEGORIES_KEY = "shelfwise_admin_categories";
+const AUTHORS_KEY = "shelfwise_admin_authors";
+const BOOKS_KEY = "shelfwise_admin_books";
 
 export type AdminCategory = Category & {
   id: string;
