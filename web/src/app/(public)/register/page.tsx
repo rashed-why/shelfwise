@@ -15,7 +15,8 @@ export default function RegisterPage() {
           Create account
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Join Selfwise to save lists, place holds, and track your reading.
+          Join Selfwise to save lists, place holds, and track your reading. A
+          profile photo is required to create your account.
         </p>
 
         <RegisterForm />

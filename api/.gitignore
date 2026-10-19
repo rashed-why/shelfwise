@@ -20,6 +20,10 @@ src/generated/
 # uploaded profile images
 public/users/*
 !public/users/.gitkeep
+public/books/*
+!public/books/.gitkeep
+public/media/books/*
+!public/media/books/.gitkeep
 
 # logs
 logs/

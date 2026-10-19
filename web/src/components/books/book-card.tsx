@@ -1,14 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PlaceHoldButton } from "@/components/books/place-hold-button";
 import type { BookListing } from "@/lib/books";
-import { canonicalBookHref } from "@/lib/book-paths";
+import { resolveHoldBookId } from "@/lib/resolve-hold-book-id";
 
 type BookCardProps = {
   book: BookListing;
 };
 
 export function BookCard({ book }: BookCardProps) {
-  const holdHref = `${canonicalBookHref(book.href)}/hold`;
+  const holdBookId = resolveHoldBookId(book);
 
   return (
     <article className="flex h-full w-full min-w-0 flex-col">
@@ -30,12 +31,7 @@ export function BookCard({ book }: BookCardProps) {
       </Link>
 
       <div className="mt-auto pt-4">
-        <Link
-          href={holdHref}
-          className="inline-flex w-full items-center justify-center rounded-md border border-border bg-white px-2 py-1.5 text-xs font-semibold text-navy no-underline transition-colors hover:border-brand-teal hover:bg-brand-teal/5 hover:text-primary sm:text-[13px]"
-        >
-          Place hold
-        </Link>
+        <PlaceHoldButton bookId={holdBookId} variant="card" />
       </div>
     </article>
   );

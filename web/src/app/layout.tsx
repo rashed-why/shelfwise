@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
+import { AuthSessionProvider } from "@/components/providers/session-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { ToastProvider } from "@/components/providers/toast-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import "./globals.css";
@@ -28,9 +31,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${quicksand.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-foreground">
-        <SiteHeader />
-        {children}
-        <SiteFooter />
+        <AuthSessionProvider>
+          <QueryProvider>
+            <ToastProvider />
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+          </QueryProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

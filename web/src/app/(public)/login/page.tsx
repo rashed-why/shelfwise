@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SignInForm } from "@/components/login/sign-in-form";
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export default function LoginPage() {
           Access your dashboard, holds, and reading list.
         </p>
 
-        <SignInForm />
+        <Suspense fallback={<p className="mt-8 text-sm text-muted">Loading…</p>}>
+          <SignInForm />
+        </Suspense>
 
         <p className="mt-8 text-center text-sm text-muted">
           Don&apos;t have an account?{" "}

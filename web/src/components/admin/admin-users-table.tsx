@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { AdminTable, adminTableCellClass } from "@/components/admin/admin-table";
-import { loadAllAdminUsers } from "@/lib/admin-users-demo";
 import { formatAdminDate } from "@/lib/admin-format";
+import { useUsersQuery } from "@/lib/queries/users";
+import { notifyError } from "@/lib/toast";
+import { useNotifyQueryError } from "@/lib/use-notify-query-error";
+import { useEffect } from "react";
 
 function roleBadgeClass(role: "USER" | "ADMIN"): string {
   return role === "ADMIN"
@@ -12,14 +16,63 @@ function roleBadgeClass(role: "USER" | "ADMIN"): string {
 }
 
 export function AdminUsersTable() {
-  const users = loadAllAdminUsers();
+  const { data: session, status: sessionStatus } = useSession();
+  const accessToken = session?.accessToken;
+  const isAdmin = session?.user.role === "ADMIN";
+
+  const {
+    data: users = [],
+    isLoading,
+    isError,
+    error,
+  } = useUsersQuery(isAdmin ? accessToken : undefined);
+
+  useEffect(() => {
+    if (session && !isAdmin) {
+      notifyError("Admin access required to view the user list.");
+    }
+  }, [session, isAdmin]);
+
+  useNotifyQueryError(isError, error, "Could not load users.");
+
+  if (sessionStatus === "loading") {
+    return <p className="text-sm text-muted">Loading session…</p>;
+  }
+
+  if (!session) {
+    return (
+      <p className="text-sm text-muted">
+        <Link href="/login" className="font-medium text-secondary no-underline">
+          Sign in
+        </Link>{" "}
+        as an admin to view users.
+      </p>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <p className="text-sm text-muted">
+        Admin access required to view the user list.
+      </p>
+    );
+  }
+
+  if (isLoading) {
+    return <p className="text-sm text-muted">Loading users…</p>;
+  }
+
+  if (isError) {
+    return (
+      <p className="text-sm text-muted">Could not load users. Try refreshing the page.</p>
+    );
+  }
 
   return (
     <section className="space-y-3">
       <p className="text-sm text-muted">
-        Sample accounts for this demo. Connect{" "}
-        <code className="text-xs">GET /user</code> when admin sign-in is wired
-        up.
+        Loaded from{" "}
+        <code className="text-xs">GET /user</code> (admin JWT required).
       </p>
 
       <AdminTable
@@ -50,7 +103,7 @@ export function AdminUsersTable() {
               <span className={roleBadgeClass(user.role)}>{user.role}</span>
             </td>
             <td className={`${adminTableCellClass} text-muted`}>
-              {formatAdminDate(user.joinedAt)}
+              {formatAdminDate(user.createdAt)}
             </td>
           </tr>
         ))}

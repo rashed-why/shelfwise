@@ -78,12 +78,7 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-6">
-            <FooterLinkGroup title="Explore" links={exploreLinks} />
-            <FooterLinkGroup title="Account" links={accountLinks} />
-            <FooterLinkGroup title="About" links={aboutLinks} />
-            <FooterLinkGroup title="Legal" links={legalLinks} />
-          </div>
+
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-sm text-muted sm:text-left">

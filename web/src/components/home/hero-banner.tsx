@@ -21,13 +21,7 @@ export function HeroBanner() {
           <div className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg [&_a]:underline [&_a]:underline-offset-4">
             <p>
               Welcome to Selfwise — your space for reflection, habits, and
-              personal growth. Start where you are; we&apos;ll meet you there.{" "}
-              <Link
-                href="/guides"
-                className="font-semibold text-brand-teal hover:text-white"
-              >
-                Explore guides
-              </Link>
+              personal growth. Start where you are;
             </p>
           </div>
         </div>

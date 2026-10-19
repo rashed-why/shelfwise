@@ -1,6 +1,4 @@
-import { notFound } from "next/navigation";
 import { AdminUserBorrowHistory } from "@/components/admin/admin-user-borrow-history";
-import { findAdminDemoUser } from "@/lib/admin-users-demo";
 
 type AdminUserDetailPageProps = {
   params: Promise<{ userId: string }>;
@@ -10,11 +8,6 @@ export default async function AdminUserDetailPage({
   params,
 }: AdminUserDetailPageProps) {
   const { userId } = await params;
-  const user = findAdminDemoUser(userId);
-
-  if (!user) {
-    notFound();
-  }
 
   return (
     <div>
@@ -24,7 +17,7 @@ export default async function AdminUserDetailPage({
       </p>
 
       <div className="mt-8">
-        <AdminUserBorrowHistory user={user} />
+        <AdminUserBorrowHistory userId={userId} />
       </div>
     </div>
   );

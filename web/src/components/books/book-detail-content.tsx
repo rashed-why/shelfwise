@@ -1,11 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BookCard } from "@/components/books/book-card";
-import type { BookDetail } from "@/lib/book-details";
+import { PlaceHoldButton } from "@/components/books/place-hold-button";
+import { RELATED_BOOKS_MAX, type BookDetail } from "@/lib/book-details";
 import type { BookListing } from "@/lib/books";
 
 type BookDetailContentProps = {
   book: BookDetail;
+  /** Backend book id for POST /holds (discover titles use the API cuid). */
+  bookId?: string;
   relatedBooks: BookListing[];
   backHref: string;
   backLabel?: string;
@@ -13,10 +16,19 @@ type BookDetailContentProps = {
 
 export function BookDetailContent({
   book,
+  bookId,
   relatedBooks,
   backHref,
   backLabel = "← Back to Discover",
 }: BookDetailContentProps) {
+  const holdBookId = bookId ?? book.slug;
+  const relatedSlots = Array.from(
+    { length: RELATED_BOOKS_MAX },
+    (_, index) => relatedBooks[index] ?? null,
+  );
+  const relatedSlotWrapperClass =
+    "flex min-w-0 flex-[1_1_calc(50%-0.5rem)] sm:flex-[1_1_calc(33.333%-1rem)] lg:flex-1";
+
   return (
     <>
       <Link
@@ -48,39 +60,35 @@ export function BookDetailContent({
             {book.summary}
           </p>
 
-          <Link
-            href={`/books/${book.slug}/hold`}
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-brand-teal/90"
-          >
-            Place hold
-          </Link>
+          <div className="mt-6">
+            <PlaceHoldButton bookId={holdBookId} variant="primary" />
+          </div>
         </div>
       </div>
 
-      {relatedBooks.length > 0 ? (
-        <section
-          className="mt-12 border-t border-border pt-10"
-          aria-labelledby="related-books-heading"
+      <section
+        className="mt-12 border-t border-border pt-10"
+        aria-labelledby="related-books-heading"
+      >
+        <h2
+          id="related-books-heading"
+          className="text-lg font-bold tracking-wide text-foreground uppercase sm:text-xl"
         >
-          <h2
-            id="related-books-heading"
-            className="text-lg font-bold tracking-wide text-foreground uppercase sm:text-xl"
-          >
-            Related books
-          </h2>
+          Related books
+        </h2>
 
-          <div className="mt-6 flex w-full flex-wrap gap-4 sm:gap-6 lg:flex-nowrap">
-            {relatedBooks.map((item) => (
-              <div
-                key={item.id}
-                className="flex min-w-0 flex-[1_1_calc(50%-0.5rem)] sm:flex-[1_1_calc(33.333%-1rem)] lg:flex-1"
-              >
-                <BookCard book={item} />
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
+        <div className="mt-6 flex w-full flex-wrap gap-4 sm:gap-6 lg:flex-nowrap">
+          {relatedSlots.map((item, index) => (
+            <div
+              key={item?.id ?? `related-slot-${index}`}
+              className={relatedSlotWrapperClass}
+              aria-hidden={item ? undefined : true}
+            >
+              {item ? <BookCard book={item} /> : null}
+            </div>
+          ))}
+        </div>
+      </section>
     </>
   );
 }

@@ -15,8 +15,25 @@ async function bootstrap() {
     }),
   );
 
+  const frontendUrl = configService.get<string>(
+    "FRONTEND_URL",
+    "http://localhost:3000",
+  );
+  const allowedOrigins = new Set([
+    frontendUrl,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ]);
+
   app.enableCors({
-    origin: configService.get<string>("FRONTEND_URL", "http://localhost:3000"),
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, origin ?? frontendUrl);
+        return;
+      }
+
+      callback(null, false);
+    },
     credentials: true,
   });
 

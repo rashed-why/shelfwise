@@ -37,10 +37,6 @@ export const adminNavItems: DashboardNavItem[] = [
     href: "/admin/users/list",
     label: "Users",
     description: "Manage member accounts and roles.",
-    children: [
-      { href: "/admin/users/create", label: "Create" },
-      { href: "/admin/users/list", label: "List" },
-    ],
   },
   {
     href: "/admin/borrowed/list",
@@ -50,5 +46,10 @@ export const adminNavItems: DashboardNavItem[] = [
       { href: "/admin/borrowed/create", label: "Create" },
       { href: "/admin/borrowed/list", label: "List" },
     ],
+  },
+  {
+    href: "/admin/holds/list",
+    label: "Hold requests",
+    description: "Review user-placed holds before checkout.",
   },
 ];

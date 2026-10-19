@@ -1,7 +1,14 @@
 "use client";
 
+import { Formik } from "formik";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import {
+  BookMultiSelect,
+  BorrowerSelect,
+} from "@/components/admin/admin-borrow-pickers";
 import { AdminPagination } from "@/components/admin/admin-pagination";
 import {
   AdminTable,
@@ -12,15 +19,34 @@ import {
   authLabelClass,
   authSubmitClass,
 } from "@/lib/auth-form-styles";
-import {
-  loadAdminBorrowed,
-  markBorrowedReturned,
-  saveAdminBorrowed,
-  type AdminBorrowed,
-} from "@/lib/admin-borrowed-storage";
+import type { BorrowedRecord } from "@/lib/borrowed-api";
 import { formatAdminDate } from "@/lib/admin-format";
+import { useBooksQuery } from "@/lib/queries/books";
+import {
+  useBorrowedQuery,
+  useCreateBorrowedMutation,
+  useReturnBorrowedMutation,
+} from "@/lib/queries/borrowed";
+import { useUsersQuery } from "@/lib/queries/users";
+import {
+  createBorrowedSchema,
+  type CreateBorrowedFormValues,
+} from "@/lib/schemas/create-borrowed.schema";
+import { zodToFormikErrors } from "@/lib/zod-formik";
+import {
+  notifyError,
+  notifyErrorFromUnknown,
+  notifySuccess,
+} from "@/lib/toast";
+import { useNotifyQueryError } from "@/lib/use-notify-query-error";
 
-function statusBadgeClass(status: AdminBorrowed["status"]): string {
+type BorrowedStatus = "active" | "returned" | "overdue";
+
+function borrowStatusFromApi(status: BorrowedRecord["status"]): BorrowedStatus {
+  return status.toLowerCase() as BorrowedStatus;
+}
+
+function statusBadgeClass(status: BorrowedStatus): string {
   switch (status) {
     case "returned":
       return "rounded-full bg-navy/10 px-2 py-0.5 text-xs font-medium text-navy";
@@ -31,7 +57,7 @@ function statusBadgeClass(status: AdminBorrowed["status"]): string {
   }
 }
 
-function statusLabel(status: AdminBorrowed["status"]): string {
+function statusLabel(status: BorrowedStatus): string {
   switch (status) {
     case "returned":
       return "Returned";
@@ -52,158 +78,239 @@ type AdminBorrowedManagementProps = {
   view: BorrowedView;
 };
 
-function matchesBorrowedFilter(
-  item: AdminBorrowed,
-  filter: BorrowedListFilter,
-): boolean {
-  if (filter === "all") return true;
-  return item.status === filter;
-}
+const createInitialValues: CreateBorrowedFormValues = {
+  userId: "",
+  bookIds: [],
+  dueAt: "",
+};
 
-export function AdminBorrowedManagement({ view }: AdminBorrowedManagementProps) {
-  const router = useRouter();
-  const bookId = useId();
-  const userNameId = useId();
-  const userEmailId = useId();
-  const dueId = useId();
+function AdminSessionGate({
+  children,
+}: {
+  children: (accessToken: string) => ReactNode;
+}) {
+  const { data: session, status } = useSession();
+  const accessToken = session?.accessToken;
+  const isAdmin = session?.user.role === "ADMIN";
 
-  const [items, setItems] = useState<AdminBorrowed[]>(() => loadAdminBorrowed());
-  const [listFilter, setListFilter] = useState<BorrowedListFilter>("all");
-  const [listPage, setListPage] = useState(1);
-  const [status, setStatus] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  function refresh() {
-    setItems(loadAdminBorrowed());
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setStatus(null);
-    setIsSubmitting(true);
-
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const result = saveAdminBorrowed({
-      bookTitle: String(formData.get("bookTitle") ?? ""),
-      userName: String(formData.get("userName") ?? ""),
-      userEmail: String(formData.get("userEmail") ?? ""),
-      dueAt: String(formData.get("dueAt") ?? ""),
-    });
-
-    setIsSubmitting(false);
-
-    if (!result.ok) {
-      setStatus({ type: "error", text: result.error });
-      return;
+  useEffect(() => {
+    if (session && !isAdmin) {
+      notifyError("Admin access required to manage borrows.");
     }
+  }, [session, isAdmin]);
 
-    form.reset();
-    refresh();
-    router.push("/admin/borrowed/list");
+  if (status === "loading") {
+    return <p className="text-sm text-muted">Loading session…</p>;
   }
 
-  function handleReturn(id: string) {
-    const result = markBorrowedReturned(id);
-    if (!result.ok) {
-      setStatus({ type: "error", text: result.error });
-      return;
-    }
-    setStatus({ type: "success", text: "Marked as returned." });
-    refresh();
-  }
-
-  if (view === "create") {
+  if (!session || !accessToken) {
     return (
-      <form
-        className="w-full space-y-4 rounded-xl border border-border bg-white p-5 sm:p-6"
-        onSubmit={handleSubmit}
-      >
-        <div>
-          <h2 className="text-lg font-semibold text-navy">Record a borrow</h2>
-          <p className="mt-1 text-sm text-muted">
-            Track who has a title out and when it is due. Stored in this browser
-            only.
-          </p>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2 sm:col-span-2">
-            <label htmlFor={bookId} className={authLabelClass}>
-              Book title
-            </label>
-            <input
-              id={bookId}
-              name="bookTitle"
-              required
-              className={authFieldClass}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor={userNameId} className={authLabelClass}>
-              Borrower name
-            </label>
-            <input
-              id={userNameId}
-              name="userName"
-              required
-              className={authFieldClass}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor={userEmailId} className={authLabelClass}>
-              Borrower email
-            </label>
-            <input
-              id={userEmailId}
-              name="userEmail"
-              type="email"
-              required
-              className={authFieldClass}
-            />
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <label htmlFor={dueId} className={authLabelClass}>
-              Due date
-            </label>
-            <input
-              id={dueId}
-              name="dueAt"
-              type="date"
-              required
-              className={authFieldClass}
-            />
-          </div>
-        </div>
-
-        {status ? (
-          <p
-            role="status"
-            className={`text-sm ${status.type === "success" ? "text-brand-teal" : "text-red-600"}`}
-          >
-            {status.text}
-          </p>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`${authSubmitClass} max-w-xs`}
-        >
-          {isSubmitting ? "Saving…" : "Add borrow"}
-        </button>
-      </form>
+      <p className="text-sm text-muted">
+        <Link href="/login" className="font-medium text-secondary no-underline">
+          Sign in
+        </Link>{" "}
+        as an admin to manage borrows.
+      </p>
     );
   }
 
-  const filteredItems = items.filter((item) =>
-    matchesBorrowedFilter(item, listFilter),
+  if (!isAdmin) {
+    return (
+      <p className="text-sm text-muted">
+        Admin access required to manage borrows.
+      </p>
+    );
+  }
+
+  return children(accessToken);
+}
+
+function AdminBorrowedCreateForm({ accessToken }: { accessToken: string }) {
+  const router = useRouter();
+  const dueId = useId();
+  const createBorrowed = useCreateBorrowedMutation(accessToken);
+  const {
+    data: books = [],
+    isLoading: booksLoading,
+    isError: booksError,
+  } = useBooksQuery();
+  const {
+    data: users = [],
+    isLoading: usersLoading,
+    isError: usersError,
+  } = useUsersQuery(accessToken);
+
+  const bookOptions = books.map((book) => ({
+    id: book.id,
+    title: book.title,
+    author: book.author.name,
+  }));
+  const borrowerOptions = users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  }));
+
+  const optionsLoadFailed = booksError || usersError;
+  useNotifyQueryError(
+    optionsLoadFailed,
+    null,
+    "Could not load books or users for this form.",
+  );
+
+  return (
+    <Formik
+      initialValues={createInitialValues}
+      validate={(values) => zodToFormikErrors(createBorrowedSchema, values)}
+      onSubmit={(values, { resetForm }) => {
+        createBorrowed.mutate(values, {
+          onSuccess: () => {
+            notifySuccess("Borrow recorded successfully.");
+            resetForm();
+            router.push("/admin/borrowed/list");
+          },
+          onError: (mutationError) => {
+            notifyErrorFromUnknown(mutationError, "Could not record the borrow.");
+          },
+        });
+      }}
+    >
+      {({
+        values,
+        errors,
+        touched,
+        handleChange,
+        handleBlur,
+        handleSubmit,
+        setFieldValue,
+        setFieldTouched,
+        isSubmitting,
+      }) => (
+        <form
+          className="w-full space-y-4 rounded-xl border border-border bg-white p-5 sm:p-6"
+          onSubmit={handleSubmit}
+          noValidate
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-navy">Record a borrow</h2>
+            <p className="mt-1 text-sm text-muted">
+              Adds each selected book to the patron reading list via{" "}
+              <code className="text-xs">POST /borrowed</code> and clears matching
+              holds.
+            </p>
+          </div>
+
+          {booksLoading || usersLoading ? (
+            <p className="text-sm text-muted">Loading books and users…</p>
+          ) : null}
+
+          {optionsLoadFailed ? (
+            <p className="text-sm text-muted">
+              Could not load books or users for this form.
+            </p>
+          ) : null}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <BookMultiSelect
+                books={bookOptions}
+                selectedIds={values.bookIds}
+                invalid={Boolean(touched.bookIds && errors.bookIds)}
+                onBlur={() => {
+                  void setFieldTouched("bookIds", true);
+                }}
+                onChange={(bookIds) => {
+                  void setFieldValue("bookIds", bookIds);
+                }}
+              />
+              {touched.bookIds && typeof errors.bookIds === "string" ? (
+                <p className="text-sm text-red-600">{errors.bookIds}</p>
+              ) : null}
+            </div>
+
+            <BorrowerSelect
+              users={borrowerOptions}
+              selectedUserId={values.userId}
+              invalid={Boolean(touched.userId && errors.userId)}
+              onBlur={() => {
+                void setFieldTouched("userId", true);
+              }}
+              onChange={(userId) => {
+                void setFieldValue("userId", userId);
+                void setFieldTouched("userId", true);
+              }}
+            />
+            {touched.userId && errors.userId ? (
+              <p className="text-sm text-red-600 sm:col-span-2">{errors.userId}</p>
+            ) : null}
+
+            <div className="space-y-2 sm:col-span-2">
+              <label htmlFor={dueId} className={authLabelClass}>
+                Due date
+              </label>
+              <input
+                id={dueId}
+                name="dueAt"
+                type="date"
+                value={values.dueAt}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={authFieldClass}
+                aria-invalid={Boolean(touched.dueAt && errors.dueAt)}
+              />
+              {touched.dueAt && errors.dueAt ? (
+                <p className="text-sm text-red-600">{errors.dueAt}</p>
+              ) : null}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || createBorrowed.isPending}
+            className={`${authSubmitClass} max-w-xs`}
+          >
+            {isSubmitting || createBorrowed.isPending ? "Saving…" : "Add borrow"}
+          </button>
+        </form>
+      )}
+    </Formik>
+  );
+}
+
+function matchesBorrowedFilter(
+  status: BorrowedStatus,
+  filter: BorrowedListFilter,
+): boolean {
+  if (filter === "all") return true;
+  return status === filter;
+}
+
+function AdminBorrowedList({ accessToken }: { accessToken: string }) {
+  const { data: items = [], isLoading, isError, error } = useBorrowedQuery(accessToken);
+  const returnBorrowed = useReturnBorrowedMutation(accessToken);
+  const [listFilter, setListFilter] = useState<BorrowedListFilter>("all");
+  const [listPage, setListPage] = useState(1);
+
+  useNotifyQueryError(isError, error, "Could not load borrows.");
+
+  if (isLoading) {
+    return <p className="text-sm text-muted">Loading borrows…</p>;
+  }
+
+  if (isError) {
+    return (
+      <p className="text-sm text-muted">
+        Could not load borrows. Try refreshing the page.
+      </p>
+    );
+  }
+
+  const rows = items.map((item) => ({
+    ...item,
+    status: borrowStatusFromApi(item.status),
+  }));
+  const filteredItems = rows.filter((item) =>
+    matchesBorrowedFilter(item.status, listFilter),
   );
 
   const totalPages = Math.max(
@@ -222,6 +329,20 @@ export function AdminBorrowedManagement({ view }: AdminBorrowedManagementProps) 
     setListPage(1);
   }
 
+  function handleReturn(id: string) {
+    returnBorrowed.mutate(id, {
+      onSuccess: () => {
+        notifySuccess("Marked as returned.");
+      },
+      onError: (returnError) => {
+        notifyErrorFromUnknown(
+          returnError,
+          "Could not mark the borrow as returned.",
+        );
+      },
+    });
+  }
+
   const filterEmptyMessage =
     listFilter === "active"
       ? "No active borrows."
@@ -230,22 +351,14 @@ export function AdminBorrowedManagement({ view }: AdminBorrowedManagementProps) 
         : "No borrows recorded yet.";
 
   const filterButtonClass = (active: boolean) =>
-    `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${active
-      ? "border-brand-teal/40 bg-brand-teal/15 text-navy"
-      : "border-border bg-white text-muted hover:border-brand-teal/30 hover:text-navy"
+    `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+      active
+        ? "border-brand-teal/40 bg-brand-teal/15 text-navy"
+        : "border-border bg-white text-muted hover:border-brand-teal/30 hover:text-navy"
     }`;
 
   return (
     <section className="space-y-3">
-      {status ? (
-        <p
-          role="status"
-          className={`text-sm ${status.type === "success" ? "text-brand-teal" : "text-red-600"}`}
-        >
-          {status.text}
-        </p>
-      ) : null}
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-navy">Borrowed titles</h2>
         <div
@@ -297,14 +410,14 @@ export function AdminBorrowedManagement({ view }: AdminBorrowedManagementProps) 
         {paginatedItems.map((item) => (
           <tr key={item.id}>
             <td className={`${adminTableCellClass} font-medium`}>
-              {item.bookTitle}
+              {item.book.title}
             </td>
             <td className={adminTableCellClass}>
-              <span className="block">{item.userName}</span>
-              <span className="text-xs text-muted">{item.userEmail}</span>
+              <span className="block">{item.user.name}</span>
+              <span className="text-xs text-muted">{item.user.email}</span>
             </td>
             <td className={`${adminTableCellClass} text-muted`}>
-              {formatAdminDate(item.borrowedAt)}
+              {formatAdminDate(item.createdAt)}
             </td>
             <td className={`${adminTableCellClass} text-muted`}>
               {formatAdminDate(item.dueAt)}
@@ -324,6 +437,7 @@ export function AdminBorrowedManagement({ view }: AdminBorrowedManagementProps) 
                 <button
                   type="button"
                   onClick={() => handleReturn(item.id)}
+                  disabled={returnBorrowed.isPending}
                   className="text-xs font-medium text-secondary hover:text-brand-teal"
                 >
                   Mark returned
@@ -341,5 +455,19 @@ export function AdminBorrowedManagement({ view }: AdminBorrowedManagementProps) 
         onPageChange={setListPage}
       />
     </section>
+  );
+}
+
+export function AdminBorrowedManagement({ view }: AdminBorrowedManagementProps) {
+  return (
+    <AdminSessionGate>
+      {(accessToken) =>
+        view === "create" ? (
+          <AdminBorrowedCreateForm accessToken={accessToken} />
+        ) : (
+          <AdminBorrowedList accessToken={accessToken} />
+        )
+      }
+    </AdminSessionGate>
   );
 }

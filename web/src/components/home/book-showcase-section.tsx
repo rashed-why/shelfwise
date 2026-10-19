@@ -20,7 +20,9 @@ export function BookShowcaseSection({
   books,
   maxItems = BOOK_SHOWCASE_MAX_ITEMS,
 }: BookShowcaseSectionProps) {
-  const items = books.slice(0, maxItems);
+  const slots = Array.from({ length: maxItems }, (_, index) => books[index] ?? null);
+  const itemWrapperClass =
+    "flex min-w-0 flex-[1_1_calc(50%-0.5rem)] sm:flex-[1_1_calc(33.333%-1rem)] lg:flex-1";
 
   return (
     <section
@@ -44,12 +46,13 @@ export function BookShowcaseSection({
         </div>
 
         <div className="mt-6 flex flex-wrap gap-4 sm:gap-6 lg:flex-nowrap">
-          {items.map((book) => (
+          {slots.map((book, index) => (
             <div
-              key={book.id}
-              className="flex min-w-0 flex-[1_1_calc(50%-0.5rem)] sm:flex-[1_1_calc(33.333%-1rem)] lg:flex-1"
+              key={book?.id ?? `showcase-slot-${index}`}
+              className={itemWrapperClass}
+              aria-hidden={book ? undefined : true}
             >
-              <BookCard book={book} />
+              {book ? <BookCard book={book} /> : null}
             </div>
           ))}
         </div>

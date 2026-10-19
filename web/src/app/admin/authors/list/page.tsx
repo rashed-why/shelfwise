@@ -5,7 +5,7 @@ export default function AdminAuthorsListPage() {
     <div>
       <h1 className="text-2xl font-bold text-navy sm:text-3xl">Authors</h1>
       <p className="mt-2 text-sm text-muted sm:text-base">
-        Authors added in this browser.
+        Authors loaded from the API.
       </p>
       <div className="mt-8">
         <AdminAuthorForm view="list" />

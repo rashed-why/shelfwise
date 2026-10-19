@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { DiscoverMenu } from "@/components/discover/discover-menu";
+import { SiteHeaderAuthButton } from "@/components/layout/site-header-auth-button";
 import { getLogoAsset } from "@/lib/logo";
 
 function SearchIcon({ className }: { className?: string }) {
@@ -44,12 +45,7 @@ export function SiteHeader() {
 
           <DiscoverMenu />
 
-          <Link
-            href="/login"
-            className="ml-auto shrink-0 rounded-full bg-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-teal/90 sm:order-last sm:ml-0 sm:px-5 sm:py-2.5"
-          >
-            Sign in
-          </Link>
+          <SiteHeaderAuthButton />
         </div>
 
         <form

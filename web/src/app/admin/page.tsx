@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminOverviewStats } from "@/components/admin/admin-overview-stats";
 import { adminNavItems } from "@/lib/admin-nav";
 
 export default function AdminOverviewPage() {
@@ -6,11 +7,13 @@ export default function AdminOverviewPage() {
     <div>
       <h1 className="text-2xl font-bold text-navy sm:text-3xl">Overview</h1>
       <p className="mt-2 text-sm text-muted sm:text-base">
-        Manage the catalog, users, and borrows from the menu. Catalog and loan
-        entries are stored locally in your browser for this demo—no API calls.
+        Live counts from the catalog, members, and active loans.
       </p>
 
-      <div className="mt-8 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
+      <AdminOverviewStats />
+
+      <h2 className="mt-10 text-lg font-semibold text-navy">Quick links</h2>
+      <div className="mt-4 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
         {adminNavItems
           .filter((item) => item.href !== "/admin")
           .map((item) => (

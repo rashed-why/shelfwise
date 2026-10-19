@@ -1,17 +1,11 @@
 "use client";
 
 import Select, { type StylesConfig } from "react-select";
-import { categories } from "@/lib/categories";
 
 export type CategorySelectOption = {
   value: string;
   label: string;
 };
-
-const categoryOptions: CategorySelectOption[] = categories.map((category) => ({
-  value: category.slug,
-  label: category.label,
-}));
 
 const brand = {
   navy: "#123669",
@@ -109,23 +103,32 @@ const categorySelectStyles: StylesConfig<CategorySelectOption, false> = {
 type DiscoverCategorySelectProps = {
   inputId: string;
   value: string;
+  options: CategorySelectOption[];
   onChange: (slug: string) => void;
 };
 
 export function DiscoverCategorySelect({
   inputId,
   value,
+  options,
   onChange,
 }: DiscoverCategorySelectProps) {
   const selected =
-    categoryOptions.find((option) => option.value === value) ??
-    categoryOptions[0];
+    options.find((option) => option.value === value) ?? options[0] ?? null;
+
+  if (options.length === 0) {
+    return (
+      <p className="text-sm text-muted" id={inputId}>
+        No categories available.
+      </p>
+    );
+  }
 
   return (
     <Select<CategorySelectOption, false>
       inputId={inputId}
       instanceId={inputId}
-      options={categoryOptions}
+      options={options}
       value={selected}
       onChange={(option) => {
         if (option) onChange(option.value);

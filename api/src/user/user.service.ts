@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -10,26 +9,12 @@ import { Role } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { publicUserSelect, toPublicUser, User } from '../types/user';
 import { CreateUserDto } from './dto/create-user.dto';
-import { saveProfileImageFile } from './user-upload.config';
-
-const MAX_PROFILE_IMAGE_SIZE = 500_000;
-const ALLOWED_PROFILE_IMAGE_TYPES = /^image\/(jpeg|png|webp)$/;
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private validateProfileImage(image: Express.Multer.File) {
-    if (image.size > MAX_PROFILE_IMAGE_SIZE) {
-      throw new BadRequestException('Profile image must be 500KB or smaller');
-    }
-
-    if (!ALLOWED_PROFILE_IMAGE_TYPES.test(image.mimetype)) {
-      throw new BadRequestException('Profile image must be jpeg, png, or webp');
-    }
-  }
-
-  async create(createUserDto: CreateUserDto, image: Express.Multer.File) {
+  async create(createUserDto: CreateUserDto) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: createUserDto.email },
     });
@@ -38,17 +23,13 @@ export class UserService {
       throw new ConflictException('Email already in use');
     }
 
-    this.validateProfileImage(image);
-
     const password = await bcrypt.hash(createUserDto.password, 10);
-    const profileImage = saveProfileImageFile(image);
 
     const user = await this.prisma.user.create({
       data: {
         name: createUserDto.name,
         email: createUserDto.email,
         password,
-        profileImage,
       },
       select: publicUserSelect,
     });
