@@ -1,27 +1,32 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useId, useState, type FormEvent } from "react";
 import type { Category } from "@/lib/categories";
+import {
+  AdminTable,
+  adminTableCellClass,
+} from "@/components/admin/admin-table";
 import {
   authFieldClass,
   authLabelClass,
   authSubmitClass,
 } from "@/lib/auth-form-styles";
 import {
-  AdminTable,
-  adminTableCellClass,
-} from "@/components/admin/admin-table";
-import {
   getAllAuthorOptions,
   getAllCategoryOptions,
   loadAdminBooks,
   saveAdminBook,
   type AdminAuthor,
-  type AdminBook,
 } from "@/lib/admin-catalog-storage";
 
-export function AdminBookForm() {
+type AdminBookFormProps = {
+  view: "create" | "list";
+};
+
+export function AdminBookForm({ view }: AdminBookFormProps) {
+  const router = useRouter();
   const titleId = useId();
   const authorId = useId();
   const coverId = useId();
@@ -29,20 +34,18 @@ export function AdminBookForm() {
   const summaryId = useId();
   const slugId = useId();
 
-  const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
-  const [authorOptions, setAuthorOptions] = useState<AdminAuthor[]>([]);
-  const [items, setItems] = useState<AdminBook[]>([]);
+  const [categoryOptions] = useState<Category[]>(() => getAllCategoryOptions());
+  const [authorOptions] = useState<AdminAuthor[]>(() => getAllAuthorOptions());
+  const [items, setItems] = useState(() => loadAdminBooks());
   const [status, setStatus] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    setCategoryOptions(getAllCategoryOptions());
-    setAuthorOptions(getAllAuthorOptions());
+  function refresh() {
     setItems(loadAdminBooks());
-  }, []);
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,16 +70,13 @@ export function AdminBookForm() {
       return;
     }
 
-    setStatus({
-      type: "success",
-      text: `Added "${result.book.title}".`,
-    });
     form.reset();
-    setItems(loadAdminBooks());
+    refresh();
+    router.push("/admin/books/list");
   }
 
-  return (
-    <div className="space-y-8">
+  if (view === "create") {
+    return (
       <form
         className="w-full space-y-4 rounded-xl border border-border bg-white p-5 sm:p-6"
         onSubmit={handleSubmit}
@@ -104,7 +104,7 @@ export function AdminBookForm() {
             <p className="text-sm text-muted">
               No authors yet.{" "}
               <Link
-                href="/admin/authors"
+                href="/admin/authors/create"
                 className="font-medium text-secondary no-underline hover:text-brand-teal"
               >
                 Add authors
@@ -209,31 +209,33 @@ export function AdminBookForm() {
           {isSubmitting ? "Saving…" : "Add book"}
         </button>
       </form>
+    );
+  }
 
-      <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-navy">Added in this browser</h3>
-        <AdminTable
-          caption="Books added in this browser"
-          columns={["Title", "Author", "Category", "Slug"]}
-          isEmpty={items.length === 0}
-          emptyMessage="No books added yet."
-        >
-          {items.map((item) => (
-            <tr key={item.id}>
-              <td className={`${adminTableCellClass} font-medium`}>
-                {item.title}
-              </td>
-              <td className={adminTableCellClass}>{item.author}</td>
-              <td className={`${adminTableCellClass} text-muted`}>
-                {item.categorySlug}
-              </td>
-              <td className={adminTableCellClass}>
-                <code className="text-xs text-muted">{item.slug}</code>
-              </td>
-            </tr>
-          ))}
-        </AdminTable>
-      </section>
-    </div>
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-navy">Added in this browser</h2>
+      <AdminTable
+        caption="Books added in this browser"
+        columns={["Title", "Author", "Category", "Slug"]}
+        isEmpty={items.length === 0}
+        emptyMessage="No books added yet."
+      >
+        {items.map((item) => (
+          <tr key={item.id}>
+            <td className={`${adminTableCellClass} font-medium`}>
+              {item.title}
+            </td>
+            <td className={adminTableCellClass}>{item.author}</td>
+            <td className={`${adminTableCellClass} text-muted`}>
+              {item.categorySlug}
+            </td>
+            <td className={adminTableCellClass}>
+              <code className="text-xs text-muted">{item.slug}</code>
+            </td>
+          </tr>
+        ))}
+      </AdminTable>
+    </section>
   );
 }

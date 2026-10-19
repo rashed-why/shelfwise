@@ -1,30 +1,36 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useId, useState, type FormEvent } from "react";
+import {
+  AdminTable,
+  adminTableCellClass,
+} from "@/components/admin/admin-table";
 import {
   authFieldClass,
   authLabelClass,
   authSubmitClass,
 } from "@/lib/auth-form-styles";
-import {
-  loadAdminAuthors,
-  saveAdminAuthor,
-  type AdminAuthor,
-} from "@/lib/admin-catalog-storage";
+import { loadAdminAuthors, saveAdminAuthor } from "@/lib/admin-catalog-storage";
 
-export function AdminAuthorForm() {
+type AdminAuthorFormProps = {
+  view: "create" | "list";
+};
+
+export function AdminAuthorForm({ view }: AdminAuthorFormProps) {
+  const router = useRouter();
   const nameId = useId();
   const slugId = useId();
-  const [items, setItems] = useState<AdminAuthor[]>([]);
+  const [items, setItems] = useState(() => loadAdminAuthors());
   const [status, setStatus] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  function refresh() {
     setItems(loadAdminAuthors());
-  }, []);
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,16 +51,13 @@ export function AdminAuthorForm() {
       return;
     }
 
-    setStatus({
-      type: "success",
-      text: `Added author "${result.author.name}".`,
-    });
     form.reset();
-    setItems(loadAdminAuthors());
+    refresh();
+    router.push("/admin/authors/list");
   }
 
-  return (
-    <div className="space-y-8">
+  if (view === "create") {
+    return (
       <form
         className="w-full space-y-4 rounded-xl border border-border bg-white p-5 sm:p-6"
         onSubmit={handleSubmit}
@@ -109,25 +112,27 @@ export function AdminAuthorForm() {
           {isSubmitting ? "Saving…" : "Add author"}
         </button>
       </form>
+    );
+  }
 
-      <section>
-        <h3 className="text-sm font-semibold text-navy">Added in this browser</h3>
-        {items.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">No authors added yet.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-white">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 text-sm"
-              >
-                <span className="font-medium text-navy">{item.name}</span>
-                <code className="text-xs text-muted">{item.slug}</code>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-navy">Added in this browser</h2>
+      <AdminTable
+        caption="Authors added in this browser"
+        columns={["Name", "Slug"]}
+        isEmpty={items.length === 0}
+        emptyMessage="No authors added yet."
+      >
+        {items.map((item) => (
+          <tr key={item.id}>
+            <td className={`${adminTableCellClass} font-medium`}>{item.name}</td>
+            <td className={adminTableCellClass}>
+              <code className="text-xs text-muted">{item.slug}</code>
+            </td>
+          </tr>
+        ))}
+      </AdminTable>
+    </section>
   );
 }

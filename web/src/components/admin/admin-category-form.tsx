@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useId, useState, type FormEvent } from "react";
+import {
+  AdminTable,
+  adminTableCellClass,
+} from "@/components/admin/admin-table";
 import {
   authFieldClass,
   authLabelClass,
@@ -9,22 +14,26 @@ import {
 import {
   loadAdminCategories,
   saveAdminCategory,
-  type AdminCategory,
 } from "@/lib/admin-catalog-storage";
 
-export function AdminCategoryForm() {
+type AdminCategoryFormProps = {
+  view: "create" | "list";
+};
+
+export function AdminCategoryForm({ view }: AdminCategoryFormProps) {
+  const router = useRouter();
   const labelId = useId();
   const slugId = useId();
-  const [items, setItems] = useState<AdminCategory[]>([]);
+  const [items, setItems] = useState(() => loadAdminCategories());
   const [status, setStatus] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  function refresh() {
     setItems(loadAdminCategories());
-  }, []);
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,16 +54,13 @@ export function AdminCategoryForm() {
       return;
     }
 
-    setStatus({
-      type: "success",
-      text: `Added category "${result.category.label}".`,
-    });
     form.reset();
-    setItems(loadAdminCategories());
+    refresh();
+    router.push("/admin/categories/list");
   }
 
-  return (
-    <div className="space-y-8">
+  if (view === "create") {
+    return (
       <form
         className="w-full space-y-4 rounded-xl border border-border bg-white p-5 sm:p-6"
         onSubmit={handleSubmit}
@@ -109,25 +115,27 @@ export function AdminCategoryForm() {
           {isSubmitting ? "Saving…" : "Add category"}
         </button>
       </form>
+    );
+  }
 
-      <section>
-        <h3 className="text-sm font-semibold text-navy">Added in this browser</h3>
-        {items.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">No categories added yet.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-white">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 text-sm"
-              >
-                <span className="font-medium text-navy">{item.label}</span>
-                <code className="text-xs text-muted">{item.slug}</code>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-navy">Added in this browser</h2>
+      <AdminTable
+        caption="Categories added in this browser"
+        columns={["Label", "Slug"]}
+        isEmpty={items.length === 0}
+        emptyMessage="No categories added yet."
+      >
+        {items.map((item) => (
+          <tr key={item.id}>
+            <td className={`${adminTableCellClass} font-medium`}>{item.label}</td>
+            <td className={adminTableCellClass}>
+              <code className="text-xs text-muted">{item.slug}</code>
+            </td>
+          </tr>
+        ))}
+      </AdminTable>
+    </section>
   );
 }

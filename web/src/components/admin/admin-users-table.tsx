@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AdminTable, adminTableCellClass } from "@/components/admin/admin-table";
-import { adminDemoUsers } from "@/lib/admin-users-demo";
+import { loadAllAdminUsers } from "@/lib/admin-users-demo";
 import { formatAdminDate } from "@/lib/admin-format";
 
 function roleBadgeClass(role: "USER" | "ADMIN"): string {
@@ -12,7 +12,7 @@ function roleBadgeClass(role: "USER" | "ADMIN"): string {
 }
 
 export function AdminUsersTable() {
-  const users = adminDemoUsers;
+  const users = loadAllAdminUsers();
 
   return (
     <section className="space-y-3">

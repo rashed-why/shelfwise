@@ -38,6 +38,29 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
+function isNavGroupActive(
+  pathname: string,
+  item: DashboardNavItem & { children: DashboardNavChildItem[] },
+): boolean {
+  if (
+    item.children.some((child) => isSidebarNavActive(pathname, child.href))
+  ) {
+    return true;
+  }
+
+  const groupBase = item.href.replace(/\/(list|create)$/, "");
+  if (!pathname.startsWith(`${groupBase}/`)) {
+    return false;
+  }
+
+  const rest = pathname.slice(groupBase.length + 1);
+  if (!rest || rest.includes("/")) {
+    return false;
+  }
+
+  return rest !== "create" && rest !== "list";
+}
+
 function SidebarNavDropdown({
   item,
   pathname,
@@ -46,9 +69,7 @@ function SidebarNavDropdown({
   pathname: string;
 }) {
   const menuId = useId();
-  const childActive = item.children.some((child) =>
-    isSidebarNavActive(pathname, child.href),
-  );
+  const childActive = isNavGroupActive(pathname, item);
   const [open, setOpen] = useState(childActive);
 
   useEffect(() => {

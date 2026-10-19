@@ -59,7 +59,7 @@ export function AdminUserBorrowHistory({ user }: AdminUserBorrowHistoryProps) {
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/users"
+        href="/admin/users/list"
         className="inline-block text-sm font-medium text-secondary no-underline hover:text-brand-teal"
       >
         ← Back to users
