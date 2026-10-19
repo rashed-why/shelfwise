@@ -1,6 +1,64 @@
 # Shelfwise
 
-Shelfwise is a small library platform with a **NestJS** API (`api/`) and a **Next.js** web app (`web/`). Users can browse books, place holds, and manage a reading list. Admins manage catalog data, users, borrows, and holds from an admin dashboard.
+A small library platform: browse the catalog, place holds, and track reading lists. Admins manage books, authors, categories, users, borrows, and holds from a dashboard.
+
+**Live demo:** [https://new-shelfwise.vercel.app/](https://new-shelfwise.vercel.app/)
+
+## Features
+
+- **Public** — Home, discover by category, header search, book detail pages
+- **Members** — Register / sign in, place holds, view holds and reading list
+- **Admin** — CRUD for catalog, user list, hold queue, record borrows and returns
+- **API** — NestJS REST backend with JWT auth (email/password and Google OAuth on the API)
+
+## Tech stack
+
+| Part | Technologies |
+|------|----------------|
+| `api/` | NestJS, Prisma, PostgreSQL, JWT |
+| `web/` | Next.js 16, NextAuth, TanStack Query, Tailwind CSS 4 |
+
+More detail for the frontend: [`web/README.md`](web/README.md).
+
+## Table of contents
+
+- [Demo credentials](#demo-credentials)
+- [Repository layout](#repository-layout)
+- [Prerequisites](#prerequisites)
+- [Environment variable examples](#environment-variable-examples)
+- [Local setup](#local-setup)
+  - [1. Database](#1-database)
+  - [2. API (`api/`)](#2-api-setup-api)
+  - [3. Web (`web/`)](#3-web-setup-web)
+  - [4. Run everything](#4-run-everything-quick-reference)
+- [Main user flow (Web ↔ API)](#main-user-flow-web--api)
+- [Troubleshooting](#troubleshooting)
+
+## Demo credentials
+
+After running the database seed (`yarn prisma:seed` in `api/`), you can sign in locally with:
+
+| Role  | Email             | Password   | Lands on   |
+|-------|-------------------|------------|------------|
+| Admin | `admin@admin.com` | `12345678` | `/admin`   |
+
+**Regular user:** there is no pre-seeded member account. Create one:
+
+| Environment | Register |
+|-------------|----------|
+| **Live** | [new-shelfwise.vercel.app/register](https://new-shelfwise.vercel.app/register) |
+| **Local** | [localhost:3000/register](http://localhost:3000/register) |
+
+New accounts get the **USER** role and land on `/user/dashboard` after login.
+
+## Repository layout
+
+| Path   | Stack                | Default URL             |
+|--------|----------------------|-------------------------|
+| `api/` | NestJS, Prisma, PG   | `http://localhost:4000` |
+| `web/` | Next.js 16, NextAuth | `http://localhost:3000` |
+
+In development, the web app proxies API requests through **`/backend/*`** (see `web/next.config.ts`) so the browser talks to the API on the same origin. Book cover assets are served from the API under **`/media/*`**.
 
 ## Prerequisites
 
@@ -8,35 +66,16 @@ Shelfwise is a small library platform with a **NestJS** API (`api/`) and a **Nex
 - **Yarn** 1.x
 - **PostgreSQL** 14+
 
-## Repository layout
-
-| Path   | Stack              | Default URL              |
-|--------|--------------------|--------------------------|
-| `api/` | NestJS, Prisma, PG | `http://localhost:4000`  |
-| `web/` | Next.js 16, NextAuth | `http://localhost:3000` |
-
-In development, the web app proxies API requests through **`/backend/*`** (see `web/next.config.ts`) so the browser talks to the API on the same origin. Book cover assets are served from the API under **`/media/*`**.
-
-## Demo credentials
-
-After running the database seed (`yarn prisma:seed` in `api/`), you can sign in with:
-
-| Role  | Email             | Password   | Lands on              |
-|-------|-------------------|------------|------------------------|
-| Admin | `admin@admin.com` | `12345678` | `/admin`               |
-
-**Regular user:** there is no pre-seeded member account. Create one at [http://localhost:3000/register](http://localhost:3000/register) (any email/password). New accounts get the **USER** role and use `/user/dashboard` after login.
-
 ---
 
 ## Environment variable examples
 
 Example files are committed in the repo (no secrets):
 
-| App | Example file        | Copy to              |
-|-----|---------------------|----------------------|
-| API | `api/.env.example`  | `api/.env`           |
-| Web | `web/.env.example`  | `web/.env.local`     |
+| App | Example file       | Copy to            |
+|-----|--------------------|--------------------|
+| API | `api/.env.example` | `api/.env`         |
+| Web | `web/.env.example` | `web/.env.local`   |
 
 ```bash
 cp api/.env.example api/.env
@@ -47,7 +86,9 @@ Then edit `DATABASE_URL`, JWT/Auth secrets, and Google OAuth values as needed. S
 
 ---
 
-## 1. Database
+## Local setup
+
+### 1. Database
 
 Create a PostgreSQL database, then note its connection string:
 
@@ -55,18 +96,16 @@ Create a PostgreSQL database, then note its connection string:
 postgresql://USER:PASSWORD@localhost:5432/shelfwise?schema=public
 ```
 
----
+### 2. API setup (`api/`)
 
-## 2. API setup (`api/`)
-
-### Install dependencies
+#### Install dependencies
 
 ```bash
 cd api
 yarn install
 ```
 
-### Environment variables
+#### Environment variables
 
 Copy the example file and customize:
 
@@ -90,7 +129,7 @@ Full template: [`api/.env.example`](api/.env.example).
 
 Use real Google OAuth credentials from [Google Cloud Console](https://console.cloud.google.com/) for “Sign in with Google”. Email/password login does not require using Google in the UI, but the API still expects the Google env vars to be set.
 
-### Prisma
+#### Prisma
 
 Generate the client and apply the schema to your database:
 
@@ -99,7 +138,7 @@ yarn prisma:generate
 npx prisma db push
 ```
 
-### Seed data
+#### Seed data
 
 Seeds an admin user, categories, authors, and 20 sample books (cover image: `public/media/books/book.png`):
 
@@ -109,7 +148,7 @@ yarn prisma:seed
 
 See [Demo credentials](#demo-credentials) above.
 
-### Run the API
+#### Run the API
 
 ```bash
 yarn start:dev
@@ -117,18 +156,16 @@ yarn start:dev
 
 API listens on **http://localhost:4000**. Static uploads (book covers) live under `api/public/` and are exposed at `/media/...`.
 
----
+### 3. Web setup (`web/`)
 
-## 3. Web setup (`web/`)
-
-### Install dependencies
+#### Install dependencies
 
 ```bash
 cd web
 yarn install
 ```
 
-### Environment variables
+#### Environment variables
 
 Copy the example file and customize:
 
@@ -145,7 +182,7 @@ cp .env.example .env.local
 
 Full template: [`web/.env.example`](web/.env.example).
 
-### Run the web app
+#### Run the web app
 
 ```bash
 yarn dev
@@ -153,9 +190,7 @@ yarn dev
 
 Open **http://localhost:3000**.
 
----
-
-## 4. Run everything (quick reference)
+### 4. Run everything (quick reference)
 
 Use two terminals:
 
@@ -176,6 +211,8 @@ Ensure PostgreSQL is running and `api/.env` / `web/.env.local` are configured be
 The browser calls the Nest API through **`/backend/*`** (Next.js rewrite). For curl or REST Client, use **`http://localhost:4000`** directly.
 
 Use [Demo credentials](#demo-credentials) above to sign in as admin after seeding.
+
+**Web base URL:** use `http://localhost:3000` locally or [https://new-shelfwise.vercel.app](https://new-shelfwise.vercel.app) for the live app.
 
 ### Flow overview
 
@@ -212,8 +249,8 @@ flowchart LR
 
 | Step | Web | API |
 |------|-----|-----|
-| Home & featured books | [http://localhost:3000](http://localhost:3000) | `GET /books`, `GET /categories` |
-| Browse by category | [http://localhost:3000/discover](http://localhost:3000/discover) | Same; UI filters client-side by category |
+| Home & featured books | `/` | `GET /books`, `GET /categories` |
+| Browse by category | `/discover` | Same; UI filters client-side by category |
 | Book detail | `/discover/{categorySlug}/{bookId}` | `GET /books/:id` |
 | Search by title | Header search → dropdown → book detail | `GET /books` (loaded once, filtered in UI) |
 
@@ -223,8 +260,8 @@ No authentication required.
 
 | Step | Web | API |
 |------|-----|-----|
-| Register | [http://localhost:3000/register](http://localhost:3000/register) | `POST /user` — JSON body: `{ "name", "email", "password" }` |
-| Sign in | [http://localhost:3000/login](http://localhost:3000/login) | `POST /auth/login` — `{ "email", "password" }` → `accessToken`, `refreshToken`, `user` |
+| Register | `/register` | `POST /user` — JSON body: `{ "name", "email", "password" }` |
+| Sign in | `/login` | `POST /auth/login` — `{ "email", "password" }` → `accessToken`, `refreshToken`, `user` |
 | Session | NextAuth (`/api/next-auth/*`) stores JWT in session | `GET /auth/me` with `Authorization: Bearer {accessToken}` |
 
 After login, **USER** accounts are redirected to **`/user/dashboard`**. **ADMIN** accounts go to **`/admin`**.
@@ -235,7 +272,7 @@ After login, **USER** accounts are redirected to **`/user/dashboard`**. **ADMIN*
 |------|-----|-----|
 | From discover or book detail, click **Place hold** | Redirects to `/login?callbackUrl=…` if guest | — |
 | Hold created (toast) | Same page | `POST /holds` — `{ "bookId" }` + user JWT |
-| View my holds | [http://localhost:3000/user/holds](http://localhost:3000/user/holds) | `GET /holds/me` |
+| View my holds | `/user/holds` | `GET /holds/me` |
 | Cancel a hold | Cancel control on holds page | `DELETE /holds/:id` |
 
 Signed-in **USER** roles cannot browse the public site; they use **`/user/*`** routes (enforced in `web/src/proxy.ts`).
@@ -244,10 +281,10 @@ Signed-in **USER** roles cannot browse the public site; they use **`/user/*`** r
 
 | Step | Web | API |
 |------|-----|-----|
-| Review hold queue | [http://localhost:3000/admin/holds/list](http://localhost:3000/admin/holds/list) | `GET /holds` (admin JWT) |
+| Review hold queue | `/admin/holds/list` | `GET /holds` (admin JWT) |
 | Record borrow for a hold | **Book hold** action on a row | `POST /borrowed` — `{ "userId", "bookIds", "dueAt" }` |
-| Member sees active loan | [http://localhost:3000/user/reading-list](http://localhost:3000/user/reading-list) | `GET /reading-list/me` |
-| Mark returned | [http://localhost:3000/admin/borrowed/list](http://localhost:3000/admin/borrowed/list) | `PATCH /borrowed/:id/status` or `PATCH /borrowed/:id/return` |
+| Member sees active loan | `/user/reading-list` | `GET /reading-list/me` |
+| Mark returned | `/admin/borrowed/list` | `PATCH /borrowed/:id/status` or `PATCH /borrowed/:id/return` |
 
 ### 5. Admin catalog (optional)
 
@@ -297,3 +334,9 @@ More HTTP examples: [`api/app.endpoint.http`](api/app.endpoint.http) (register v
 - **Web cannot reach API** — Confirm the API is on port 4000 and `API_URL` in `web/.env.local` matches. Restart `yarn dev` after env changes.
 - **Book covers 404** — Covers are stored under `api/public/media/books/`. Seed expects `book.png` at that path.
 - **CORS errors** — Set `FRONTEND_URL` in `api/.env` to your web origin (default `http://localhost:3000`).
+
+---
+
+## Planned AI/ML features (not implemented)
+
+AI/ML features weren’t implemented due to time constraints. The planned scope was a RAG-based chatbot (LLM + LangChain) for book recommendations and text summarization. See [`web/README.md`](web/README.md).
