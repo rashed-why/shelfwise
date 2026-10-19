@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createBook,
+  deleteBook,
   fetchBook,
   fetchBooks,
   updateBook,
@@ -55,6 +56,20 @@ export function useCreateBookMutation() {
       queryClient.setQueryData<BookRecord[]>(bookQueryKeys.all, (prev) =>
         prev ? [book, ...prev] : [book],
       );
+    },
+  });
+}
+
+export function useDeleteBookMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteBook(id),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<BookRecord[]>(bookQueryKeys.all, (prev) =>
+        prev ? prev.filter((item) => item.id !== id) : prev,
+      );
+      queryClient.removeQueries({ queryKey: bookQueryKeys.detail(id) });
     },
   });
 }

@@ -4,6 +4,7 @@ import { Formik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 import {
   AdminTable,
   adminTableCellClass,
@@ -16,7 +17,12 @@ import {
   authSubmitClass,
 } from "@/lib/auth-form-styles";
 import { useAuthorsQuery } from "@/lib/queries/authors";
-import { useBooksQuery, useCreateBookMutation, useUpdateBookMutation } from "@/lib/queries/books";
+import {
+  useBooksQuery,
+  useCreateBookMutation,
+  useDeleteBookMutation,
+  useUpdateBookMutation,
+} from "@/lib/queries/books";
 import { useCategoriesQuery } from "@/lib/queries/categories";
 import {
   createBookSchema,
@@ -31,6 +37,8 @@ import { useNotifyQueryError } from "@/lib/use-notify-query-error";
 type AdminBookFormProps = {
   view: "create" | "list";
 };
+
+const BOOK_LIST_PAGE_SIZE = 10;
 
 const createInitialValues: CreateBookFormValues = {
   title: "",
@@ -481,9 +489,42 @@ function AdminBookEditPanel({ book, onCancel, onSaved }: AdminBookEditPanelProps
 
 function AdminBookList() {
   const { data: items = [], isLoading, isError, error } = useBooksQuery();
+  const deleteBook = useDeleteBookMutation();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const editingBook =
     editingId === null ? null : items.find((item) => item.id === editingId) ?? null;
+
+  const totalPages = Math.max(1, Math.ceil(items.length / BOOK_LIST_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageOffset = (currentPage - 1) * BOOK_LIST_PAGE_SIZE;
+  const pageItems = items.slice(pageOffset, pageOffset + BOOK_LIST_PAGE_SIZE);
+
+  function handleDelete(item: BookRecord) {
+    const confirmed = window.confirm(
+      `Delete “${item.title}”? This cannot be undone.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingId(item.id);
+    deleteBook.mutate(item.id, {
+      onSuccess: () => {
+        notifySuccess("Book deleted.");
+        if (editingId === item.id) {
+          setEditingId(null);
+        }
+      },
+      onError: (mutationError) => {
+        notifyErrorFromUnknown(mutationError, "Could not delete book.");
+      },
+      onSettled: () => {
+        setDeletingId(null);
+      },
+    });
+  }
 
   useNotifyQueryError(isError, error, "Could not load books.");
 
@@ -516,7 +557,7 @@ function AdminBookList() {
           isEmpty={items.length === 0}
           emptyMessage="No books yet."
         >
-          {items.map((item) => (
+          {pageItems.map((item) => (
             <tr key={item.id}>
               <td className={adminTableCellClass}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -534,18 +575,37 @@ function AdminBookList() {
                 {item.category.label}
               </td>
               <td className={adminTableCellClass}>
-                <button
-                  type="button"
-                  onClick={() => setEditingId(item.id)}
-                  className="cursor-pointer text-sm font-semibold text-brand-teal hover:underline"
-                  aria-pressed={editingId === item.id}
-                >
-                  Edit
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(item.id)}
+                    className="cursor-pointer text-sm font-semibold text-brand-teal hover:underline"
+                    aria-pressed={editingId === item.id}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(item)}
+                    disabled={deleteBook.isPending && deletingId === item.id}
+                    className="cursor-pointer text-sm font-semibold text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {deleteBook.isPending && deletingId === item.id
+                      ? "Deleting…"
+                      : "Delete"}
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
         </AdminTable>
+
+        <AdminPagination
+          page={currentPage}
+          pageSize={BOOK_LIST_PAGE_SIZE}
+          totalItems={items.length}
+          onPageChange={setPage}
+        />
       </div>
     </section>
   );

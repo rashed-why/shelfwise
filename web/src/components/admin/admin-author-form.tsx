@@ -3,6 +3,7 @@
 import { Formik } from "formik";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 import {
   AdminTable,
   adminTableCellClass,
@@ -31,6 +32,8 @@ import { useNotifyQueryError } from "@/lib/use-notify-query-error";
 type AdminAuthorFormProps = {
   view: "create" | "list";
 };
+
+const AUTHOR_LIST_PAGE_SIZE = 10;
 
 const createInitialValues: CreateAuthorFormValues = {
   name: "",
@@ -259,8 +262,14 @@ function AdminAuthorEditPanel({
 function AdminAuthorList() {
   const { data: items = [], isLoading, isError, error } = useAuthorsQuery();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const editingAuthor =
     editingId === null ? null : items.find((item) => item.id === editingId) ?? null;
+
+  const totalPages = Math.max(1, Math.ceil(items.length / AUTHOR_LIST_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageOffset = (currentPage - 1) * AUTHOR_LIST_PAGE_SIZE;
+  const pageItems = items.slice(pageOffset, pageOffset + AUTHOR_LIST_PAGE_SIZE);
 
   useNotifyQueryError(isError, error, "Could not load authors.");
 
@@ -293,7 +302,7 @@ function AdminAuthorList() {
           isEmpty={items.length === 0}
           emptyMessage="No authors yet."
         >
-          {items.map((item) => (
+          {pageItems.map((item) => (
             <tr key={item.id}>
               <td className={`${adminTableCellClass} font-medium`}>{item.name}</td>
               <td className={adminTableCellClass}>
@@ -312,6 +321,13 @@ function AdminAuthorList() {
             </tr>
           ))}
         </AdminTable>
+
+        <AdminPagination
+          page={currentPage}
+          pageSize={AUTHOR_LIST_PAGE_SIZE}
+          totalItems={items.length}
+          onPageChange={setPage}
+        />
       </div>
     </section>
   );

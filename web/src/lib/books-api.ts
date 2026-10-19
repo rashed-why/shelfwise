@@ -120,3 +120,15 @@ export async function updateBook(
 
   return response.json() as Promise<BookRecord>;
 }
+
+export async function deleteBook(id: string): Promise<{ message: string }> {
+  const response = await fetch(`${getApiBaseUrl()}/books/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  return response.json() as Promise<{ message: string }>;
+}
